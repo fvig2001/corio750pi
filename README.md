@@ -15,3 +15,4 @@ Requirements:
 3. Python3
 4. A Corio2 750
 5. USB RS232 connected between Pi and Corio2 750
+6. A Rasperry Pi 3 or later (Pi Zero 1 won't work without a workaround due to poor performance on reading IR data)
