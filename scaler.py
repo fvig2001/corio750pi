@@ -3,6 +3,7 @@ import time
 import serial
 import RPi.GPIO as GPIO
 from datetime import datetime
+import xml.etree.ElementTree as ET
 global ser
 global res
 res = None
@@ -12,6 +13,24 @@ mode = 0
 remotePin = 14
 debug = False
 
+def SetIs480i(value):
+    if value:
+        Set480i()
+    else
+        Set240p()
+
+def SetShrinkOn(value):
+    if value:
+        ShrinkOn()
+    else
+        ShrinkOff()
+
+def SetAdvancedShrinkOn(value):
+    if value:
+        AdvancedShrinkOn()
+    else
+        AdvancedShrinkOff()
+        
 def Setup():
 	global remotePin
 	GPIO.setmode(GPIO.BCM)
@@ -25,6 +44,101 @@ def Setup():
 	        bytesize=serial.EIGHTBITS,
 	        timeout=1
 	)
+
+# Dictionary to map field names to setter functions
+setter_functions = {
+    'is480i': SetIs480i,
+    'ShrinkH': SetShrinkH,
+    'ShrinkV': SetShrinkV,
+    'PosH': SetPosH,
+    'PosV': SetPosV,
+    'ShrinkOn': SetShrinkOn,
+    'AdvancedShrinkOn': SetAdvancedShrinkOn,
+    'PixelOutX': SetPixelOutX,
+    'PixelOutY': SetPixelOutY,
+    'PixelOutH': SetPixelOutH,
+    'PixelOutV': SetPixelOutV,
+    'PixelInX': SetPixelInX,
+    'PixelInY': SetPixelInY,
+    'PixelInH': SetPixelInH,
+    'PixelInV': SetPixelInV,
+    'TopH': SetTopH,
+    'TopV': SetTopV,
+    'BottomH': SetBottomH,
+    'BottomV': SetBottomV,
+    'ZoomH': SetZoomH,
+    'ZoomV': SetZoomV,
+    'PanH': SetPanH,
+    'PanV': SetPanV,
+}
+
+# Function to parse XML and call appropriate setters
+def parse_and_set_xml(file_path):
+    # Define the ranges and valid values for each field
+    ranges = {
+        'is480i': (['false', 'true'], None),
+        'ShrinkH': (range(0, 151), None),
+        'ShrinkV': (range(0, 151), None),
+        'PosH': (range(-255, 256), None),
+        'PosV': (range(-255, 256), None),
+        'ShrinkOn': (['false', 'true'], None),
+        'AdvancedShrinkOn': (['false', 'true'], None),
+        'PixelOutX': (range(-255, 256), None),
+        'PixelOutY': (range(-255, 256), None),
+        'PixelOutH': (range(0, 1921), None),
+        'PixelOutV': (range(0, 1081), None),
+        'PixelInX': (range(-255, 256), None),
+        'PixelInY': (range(-255, 256), None),
+        'PixelInH': (range(0, 1921), None),
+        'PixelInV': (range(0, 1081), None),
+        'TopH': (range(-255, 256), None),
+        'TopV': (range(-255, 256), None),
+        'BottomH': (range(-255, 256), None),
+        'BottomV': (range(-255, 256), None),
+        'ZoomH': (range(-255, 256), None),
+        'ZoomV': (range(-255, 256), None),
+        'PanH': (range(-255, 256), None),
+        'PanV': (range(-255, 256), None),
+    }
+    
+    def is_valid(value, valid_range):
+        if isinstance(valid_range, list):
+            return value in valid_range
+        elif isinstance(valid_range, range):
+            return value in valid_range
+        return False
+
+    # Parse the XML file
+    tree = ET.parse(file_path)
+    root = tree.getroot()
+
+    # Iterate through the defined fields
+    for field, (valid_range, _) in ranges.items():
+        elem = root.find(field)
+        if elem is not None:
+            value = elem.text.strip()
+            if value.lower() in ['false', 'true']:
+                value = value.lower() == 'true'
+            else:
+                try:
+                    value = int(value)
+                except ValueError:
+                    print(f"Invalid value for {field}: {value}")
+                    continue
+            
+            if is_valid(value, valid_range):
+                setter_function = setter_functions.get(field)
+                if setter_function:
+                    setter_function(value)
+                else:
+                    print(f"No setter function defined for {field}")
+            else:
+                print(f"Value {value} for {field} is out of range")
+        else:
+            print(f"Field {field} not found in XML")
+
+
+
 
 #for commands with correct checksum
 def WriteBasic(str):
@@ -591,6 +705,12 @@ def Mode8(): #16:9 480i
 	myres = SetPanH(0)
 	myres = SetPanV(0)
 
+def ModeTest():
+    global res
+    res = True
+    file_path = '/tmp/trial.txt'
+    parse_and_set_xml(file_path)
+    
 def Test(): #select DVI-1
 	res = True
 	res = SendCommand("F0410410116000010") and res
@@ -736,7 +856,10 @@ while True:
 					ChangeModeSpecific(chanVal)
 
 					break
+                elif ButtonsNames[button] == ("Red"):
+					ModeTest()
 
+					break
 
 	except Exception as e:
 		print("Remote exception caught " + str(e))
