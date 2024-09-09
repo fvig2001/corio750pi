@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Settings>
+    <is480i>true</is480i>
+    <ShrinkH>120</ShrinkH>
+    <ShrinkV>80</ShrinkV>
+    <PosH>100</PosH>
+    <PosV>-50</PosV>
+    <ShrinkOn>true</ShrinkOn>
+    <AdvancedShrinkOn>false</AdvancedShrinkOn>
+    <PixelOutX>50</PixelOutX>
+    <PixelOutY>-30</PixelOutY>
+    <PixelOutH>1920</PixelOutH>
+    <PixelOutV>1080</PixelOutV>
+    <PixelInX>-100</PixelInX>
+    <PixelInY>75</PixelInY>
+    <PixelInH>1280</PixelInH>
+    <PixelInV>720</PixelInV>
+    <TopH>0</TopH>
+    <TopV>-255</TopV>
+    <BottomH>255</BottomH>
+    <BottomV>0</BottomV>
+    <ZoomH>-100</ZoomH>
+    <ZoomV>50</ZoomV>
+    <PanH>25</PanH>
+    <PanV>-10</PanV>
+</Settings>
