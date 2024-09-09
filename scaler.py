@@ -74,6 +74,10 @@ setter_functions = {
 
 # Function to parse XML and call appropriate setters
 def parse_and_set_xml(file_path):
+    if not os.path.isfile(file_path):
+        print(f"Error: The file '{file_path}' does not exist.")
+        return
+
     # Define the ranges and valid values for each field
     ranges = {
         'is480i': (['false', 'true'], None),
@@ -108,37 +112,37 @@ def parse_and_set_xml(file_path):
             return value in valid_range
         return False
 
-    # Parse the XML file
-    tree = ET.parse(file_path)
-    root = tree.getroot()
+    try:
+        # Parse the XML file
+        tree = ET.parse(file_path)
+        root = tree.getroot()
 
-    # Iterate through the defined fields
-    for field, (valid_range, _) in ranges.items():
-        elem = root.find(field)
-        if elem is not None:
-            value = elem.text.strip()
-            if value.lower() in ['false', 'true']:
-                value = value.lower() == 'true'
-            else:
-                try:
-                    value = int(value)
-                except ValueError:
-                    print(f"Invalid value for {field}: {value}")
-                    continue
-            
-            if is_valid(value, valid_range):
-                setter_function = setter_functions.get(field)
-                if setter_function:
-                    setter_function(value)
+        # Iterate through the defined fields
+        for field, (valid_range, _) in ranges.items():
+            elem = root.find(field)
+            if elem is not None:
+                value = elem.text.strip()
+                if value.lower() in ['false', 'true']:
+                    value = value.lower() == 'true'
                 else:
-                    print(f"No setter function defined for {field}")
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        print(f"Invalid value for {field}: {value}")
+                        continue
+                
+                if is_valid(value, valid_range):
+                    setter_function = setter_functions.get(field)
+                    if setter_function:
+                        setter_function(value)
+                    else:
+                        print(f"No setter function defined for {field}")
+                else:
+                    print(f"Value {value} for {field} is out of range")
             else:
-                print(f"Value {value} for {field} is out of range")
-        else:
-            print(f"Field {field} not found in XML")
-
-
-
+                print(f"Field {field} not found in XML")
+    except ET.ParseError as e:
+        print(f"Error parsing XML file: {e}")
 
 #for commands with correct checksum
 def WriteBasic(str):
